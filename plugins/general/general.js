@@ -342,7 +342,7 @@ ${config.settings.footer}
             const platform = os.platform();
             const hostname = os.hostname();
             const nodeVersion = process.version;
-            const botName = config.settings?.title || 'Alpha Bot';
+            const botName = config.settings?.title || 'SHADOW X MD';
             const owner = config.owner?.[0] || 'Unknown';
             const ownerJid = owner.includes('@') ? owner : owner + '@s.whatsapp.net';
 
@@ -362,7 +362,7 @@ ${config.settings.footer}
         category: "general",
         execute: async (sock, m, { reply }) => {
             const ownerNumber = config.owner?.[0] || 'Unknown';
-            const ownerName = config.settings?.title?.split(' ')[0] || 'Alpha';
+            const ownerName = config.settings?.title?.split(' ')[0] || 'SHADOW';
             const ownerJid = ownerNumber.includes('@') ? ownerNumber : ownerNumber + '@s.whatsapp.net';
 
             const messages = [
@@ -381,15 +381,15 @@ ${config.settings.footer}
         aliases: ["source", "github", "sc"],
         category: "general",
         execute: async (sock, m, { reply }) => {
-            const repoLink = "https://github.com/Alexio11-09/alpha-xmd";
-            const ownerName = "Alpha";
-            const ownerContact = "wa.me/263784969735";
-            const botName = config.settings?.title || "Alpha Bot";
+            const repoLink = "https://github.com/castro343/shadow-X-MD";
+            const ownerName = "SHADOW";
+            const ownerContact = "github.com/castro343/shadow-X-MD/issues";
+            const botName = config.settings?.title || "SHADOW X MD";
 
             const texts = [
                 `📂 *${botName} – Source Code*\n\n🔗 *Repo:* ${repoLink}\n👤 *Owner:* ${ownerName}\n📞 *Contact:* ${ownerContact}\n\n⭐ Star & fork freely!`,
                 `🧬 *Open Source Bot*\n\n💻 *Repo:* ${repoLink}\n👑 *Dev:* ${ownerName}\n📱 *WhatsApp:* ${ownerContact}\n\n🤖 Build your own version.`,
-                `⚡ *Alpha XMD Repository*\n\n🔗 ${repoLink}\n👤 *Maintainer:* ${ownerName}\n📞 ${ownerContact}\n\n📥 Clone, modify, deploy.`
+                `⚡ *SHADOW X MD Repository*\n\n🔗 ${repoLink}\n👤 *Maintainer:* ${ownerName}\n📞 ${ownerContact}\n\n📥 Clone, modify, deploy.`
             ];
 
             reply(texts[Math.floor(Math.random() * texts.length)]);
@@ -415,7 +415,7 @@ ${config.settings.footer}
                         `✅ *Pairing Code Ready*\n\n📞 *Number:* +${rawNumber}\n🔢 *Code:* *${formatted}*\n\n⏱️ The code expires shortly.\n📱 Open WhatsApp → Linked devices → Link with phone number → Enter this code.`
                     ),
                     onConnected: async () => reply(
-                        `🎉 *Successfully connected +${rawNumber}!*\n\nYour Alpha XMD account is starting now.`
+                        `🎉 *Successfully connected +${rawNumber}!*\n\nYour SHADOW X MD account is starting now.`
                     ),
                     onError: async err => reply(`❌ Pairing failed: ${err.message || String(err)}`)
                 });
