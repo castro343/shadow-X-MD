@@ -1,7 +1,7 @@
 {
-  "name": "alpha-xmd",
-  "version": "1.1.2",
-  "description": "Advanced WhatsApp Bot by Alpha",
+  "name": "shadow-x-md",
+  "version": "1.0.0",
+  "description": "SHADOW X MD WhatsApp automation bot",
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
