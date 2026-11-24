@@ -343,8 +343,8 @@ ${config.settings.footer}
             const hostname = os.hostname();
             const nodeVersion = process.version;
             const botName = config.settings?.title || 'SHADOW X MD';
-            const owner = config.owner?.[0] || 'Unknown';
-            const ownerJid = owner.includes('@') ? owner : owner + '@s.whatsapp.net';
+            const owner = config.owner?.[0] || '';
+            const ownerJid = owner ? (owner.includes('@') ? owner : owner + '@s.whatsapp.net') : null;
 
             const infos = [
                 `📊 *${botName} Info*\n\n⏳ Uptime: ${uptime}\n🧠 Memory: ${memory} MB\n💻 Platform: ${platform}\n🖥️ Host: ${hostname}\n🔧 Node.js: ${nodeVersion}\n👑 Owner: @${owner}`,
@@ -352,7 +352,7 @@ ${config.settings.footer}
                 `📋 *Technical Info*\n\n⚡ Uptime: ${uptime}\n💾 Memory: ${memory}MB\n🖥️ OS: ${platform}\n🔢 Node: ${nodeVersion}\n👑 @${owner}`
             ];
 
-            reply(R(infos), { mentions: [ownerJid] });
+            reply(R(infos), { mentions: ownerJid ? [ownerJid] : [] });
         }
     },
 
@@ -361,7 +361,8 @@ ${config.settings.footer}
         aliases: ["creator", "dev"],
         category: "general",
         execute: async (sock, m, { reply }) => {
-            const ownerNumber = config.owner?.[0] || 'Unknown';
+            const ownerNumber = config.owner?.[0] || '';
+            if (!ownerNumber) return reply("⚠️ Set OWNER_NUMBER in the hosting environment first.");
             const ownerName = config.settings?.title?.split(' ')[0] || 'SHADOW';
             const ownerJid = ownerNumber.includes('@') ? ownerNumber : ownerNumber + '@s.whatsapp.net';
 
@@ -401,7 +402,7 @@ ${config.settings.footer}
         aliases: ["pairing", "session"],
         category: "general",
         execute: async (sock, m, { args, reply }) => {
-            if (!args[0]) return reply("❌ Provide a phone number with country code!\n\n📌 Example: .pair 263784969735");
+            if (!args[0]) return reply("❌ Provide a phone number with country code!\n\n📌 Example: .pair 2547XXXXXXXX");
             const rawNumber = args[0].replace(/[^0-9]/g, "");
             if (!/^\d{10,15}$/.test(rawNumber)) return reply("❌ Invalid phone number. Use 10–15 digits with country code.");
             if (typeof global.pairAccount !== "function") {
