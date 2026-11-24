@@ -3,20 +3,20 @@
   <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=0,2,2,5,30&height=120&section=header&text=Hi+there&fontSize=50&fontColor=33ff00&animation=fadeIn" alt="Wave Header" width="100%"/>
 
   <a href="https://git.io/typing-svg">
-    <img src="https://readme-typing-svg.demolab.com?font=Ribeye&size=40&pause=1000&color=33ff00&center=true&vCenter=true&width=800&height=80&lines=Alpha-XMD;Multi+Device+Whatsapp+Bot;Coded+By+Alpha" alt="Typing SVG" />
+    <img src="https://readme-typing-svg.demolab.com?font=Ribeye&size=40&pause=1000&color=33ff00&center=true&vCenter=true&width=800&height=80&lines=SHADOW X MD;Multi+Device+Whatsapp+Bot;Coded+By+SHADOW" alt="Typing SVG" />
   </a>
 
-  <img src="https://files.catbox.moe/soc5w1.jpg" alt="Alpha Bot" width="180"/>
+  <img src="https://files.catbox.moe/soc5w1.jpg" alt="SHADOW Bot" width="180"/>
 
-  <h1>⚡ ALPHA‑XMD — The Multiverse Bot ⚡</h1>
+  <h1>⚡ SHADOW X MD — The Multiverse Bot ⚡</h1>
 
   <p><i>"Not just a WhatsApp assistant — it's a digital beast with attitude, automation, and style."</i></p>
 
   <img src="https://komarev.com/ghpvc/?username=Alexio11-09&label=Visitors&color=33ff00&style=for-the-badge" alt="Visitors" />
 
   <p>
-    <a href="https://github.com/Alexio11-09/alpha-xmd/fork">
-      <img src="https://img.shields.io/badge/🍴_FORK_REPO-Alpha_XMD-0f172a?style=for-the-badge&logo=github&logoColor=white" alt="Fork Repo"/>
+    <a href="https://github.com/Alexio11-09/shadow-X-MD/fork">
+      <img src="https://img.shields.io/badge/🍴_FORK_REPO-SHADOW_XMD-0f172a?style=for-the-badge&logo=github&logoColor=white" alt="Fork Repo"/>
     </a>
     <a href="https://whatsapp.com/channel/0029Vb7nHdBFnSzBDbvL6y1X">
       <img src="https://img.shields.io/badge/📢_CHANNEL-Join_Now-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Channel"/>
@@ -28,7 +28,7 @@
 
 ---
 
-## 🔥 Why Alpha‑XMD?
+## 🔥 Why SHADOW‑XMD?
 
 <div align="center">
   <table>
@@ -71,9 +71,9 @@
 | Platform | One-Click Deploy | Uptime |
 |----------|------------------|--------|
 | **Bot-Hosting.net** | [![Deploy](https://img.shields.io/badge/🚀_Deploy_Now-6C63FF?style=for-the-badge)](https://bot-hosting.net/?aff=alphaXMD) | 24/7 Free |
-| **Railway** | [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=alpha-xmd) | 24/7 Forever |
-| **Koyeb** | [![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=git&repository=github.com/Alexio11-09/alpha-xmd) | 24/7 Free |
-| **Render** | [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Alexio11-09/alpha-xmd) | 24/7 Free |
+| **Railway** | [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=shadow-X-MD) | 24/7 Forever |
+| **Koyeb** | [![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=git&repository=github.com/Alexio11-09/shadow-X-MD) | 24/7 Free |
+| **Render** | [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Alexio11-09/shadow-X-MD) | 24/7 Free |
 
 ---
 
@@ -83,7 +83,7 @@
 > **Copy the whole command, paste it in Termux, and press Enter.**
 
 ```bash
-pkg update -y && pkg upgrade -y && pkg install nodejs git ffmpeg -y && cd ~ && rm -rf alpha-xmd && git clone https://github.com/Alexio11-09/alpha-xmd && cd alpha-xmd && sed -i '/jimp/d; /node-webpmux/d; /wa-sticker-formatter/d' package.json && npm install --legacy-peer-deps && node index.js
+pkg update -y && pkg upgrade -y && pkg install nodejs git ffmpeg -y && cd ~ && rm -rf shadow-X-MD && git clone https://github.com/Alexio11-09/shadow-X-MD && cd shadow-X-MD && sed -i '/jimp/d; /node-webpmux/d; /wa-sticker-formatter/d' package.json && npm install --legacy-peer-deps && node index.js
 ```
 
 After the install finishes, the bot will ask for your WhatsApp number.
@@ -92,7 +92,7 @@ Enter it with the country code (e.g., 263786641436), grab the pairing code, and 
 Next time you just run:
 
 ```bash
-cd ~/alpha-xmd && node index.js
+cd ~/shadow-X-MD && node index.js
 ```
 
 ---
@@ -130,7 +130,7 @@ Store server logins and send them to users with a single command.
   <a href="https://chat.whatsapp.com/IWvvBvg8eRXC7F6Ni8Yq2S?mode=gi_t">
     <img src="https://img.shields.io/badge/💬_CHAT_GROUP-Help_&_Fun-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Group"/>
   </a>
-  <a href="https://github.com/Alexio11-09/alpha-xmd/issues">
+  <a href="https://github.com/Alexio11-09/shadow-X-MD/issues">
     <img src="https://img.shields.io/badge/🐛_REPORT_BUG-Open_Issue-EF4444?style=for-the-badge&logo=github&logoColor=white" alt="Report Bug"/>
   </a>
 </div>
@@ -164,7 +164,7 @@ MIT – free to use, modify, and distribute. Attribution appreciated but not req
 
   <img src="https://readme-typing-svg.demolab.com?font=Ribeye&size=28&pause=1000&color=33ff00&center=true&vCenter=true&width=600&height=50&lines=Thanks+for+visiting!;Star+the+repo+%E2%AD%90;Join+our+channel+%F0%9F%93%A2" alt="Footer Typing" />
 
-  <p><i>Built with ❤️ by Alpha</i></p>
+  <p><i>Built with ❤️ by SHADOW</i></p>
 
   <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=0,2,2,5,30&height=100&section=footer" alt="Wave Footer" width="100%"/>
 
