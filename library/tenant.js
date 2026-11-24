@@ -1,11 +1,10 @@
-// Per-WhatsApp-account storage helpers for Alpha XMD.
+// Per-WhatsApp-account storage helpers for SHADOW X MD.
 const fs = require('fs');
 const path = require('path');
-const config = require('../settings/config');
 
 const ROOT = path.join(__dirname, '..');
 const SESSIONS = path.join(ROOT, 'sessions');
-const MAIN_OWNER = '263784969735';
+const MAIN_OWNER = String(process.env.OWNER_NUMBER || '').replace(/\D/g, '');
 
 function phoneOf(sock) {
   const raw = sock?.user?.id || sock?.user?.jid || '';
@@ -26,10 +25,6 @@ function fileOf(sock, name) {
   return path.join(dirOf(sock), name);
 }
 
-// ---------------------------------------------------------------
-// Short-lived cache of raw file text (parsed fresh on every read so
-// callers can safely modify what they get back).
-// ---------------------------------------------------------------
 const cache = new Map();
 const TTL = 5000;
 
@@ -42,14 +37,8 @@ function readRaw(sock, name) {
   let raw = null;
   try {
     raw = fs.readFileSync(fileOf(sock, name), 'utf8');
-  } catch {
-    // Existing shared data belongs only to the confirmed primary owner's account.
-    if (phone === MAIN_OWNER) {
-      try { raw = fs.readFileSync(path.join(ROOT, 'database', name), 'utf8'); } catch {}
-    }
-  }
+  } catch {}
 
-  // Do not cache anything for an unidentified account
   if (phone) cache.set(key, { t: Date.now(), raw });
   return raw;
 }
@@ -72,16 +61,13 @@ function write(sock, name, data) {
   return true;
 }
 
-// Drop cached files for one account (used when a session is deleted)
 function forget(phone) {
   const prefix = String(phone) + '/';
-  for (const k of cache.keys()) {
-    if (k.startsWith(prefix)) cache.delete(k);
-  }
+  for (const k of cache.keys()) if (k.startsWith(prefix)) cache.delete(k);
 }
 
 function isMainOwner(sender) {
-  return String(sender || '').split('@')[0].split(':')[0].replace(/\D/g, '') === MAIN_OWNER;
+  return !!MAIN_OWNER && String(sender || '').split('@')[0].split(':')[0].replace(/\D/g, '') === MAIN_OWNER;
 }
 
 function isAccountOwner(sender, sock) {
