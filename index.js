@@ -1,4 +1,4 @@
-// © 2026 Alpha. All Rights Reserved.
+// © 2026 SHADOW. All Rights Reserved.
 
 // ======================================================
 // QUIET NOISY LOGS (must run before anything else)
@@ -79,10 +79,9 @@ console.error = (...args) => {
 // NGROK CONFIGURATION
 // ======================================================
 
-const NGROK_AUTHTOKEN = process.env.NGROK_AUTHTOKEN || "3L4Ccoik7R16ilMsfKycK2OZkmC_7qvF29reP3BEE19h42nyk";
+const NGROK_AUTHTOKEN = process.env.NGROK_AUTHTOKEN || "";
 const NGROK_DOMAIN =
-  process.env.NGROK_DOMAIN ||
-  "itinerary-splashy-flyer.ngrok-free.dev";
+  process.env.NGROK_DOMAIN || "";
 
 // ======================================================
 // LIMITS
@@ -983,7 +982,7 @@ function attachHandlers(sock, phoneNumber) {
 
   sock._onlineNoticeTimeout = setTimeout(async () => {
     try {
-      const botName = config().settings?.title || "Alpha Bot";
+      const botName = config().settings?.title || "SHADOW X MD";
 
       const text =
         `╭───〔 🤖 ${botName} 〕───⬣\n\n` +
@@ -1544,7 +1543,7 @@ app.get("/api/health", (req, res) => {
   res.json({
     success: true,
     healthy: true,
-    service: "Alpha XMD API",
+    service: "SHADOW X MD API",
     uptime: process.uptime(),
     uptimeFormatted: formatUptime(process.uptime()),
 
@@ -1934,7 +1933,7 @@ app.post("/api/settings", async (req, res) => {
 (async () => {
   try {
     console.log(
-      "🚀 Starting Alpha XMD Server (SQLite Mode)..."
+      "🚀 Starting SHADOW X MD Server..."
     );
 
     baileys = await import("@whiskeysockets/baileys");
@@ -1949,29 +1948,20 @@ app.post("/api/settings", async (req, res) => {
         `🌐 Internal API running on port ${PORT}`
       );
 
-      // NGROK
-
-      try {
-        const ngrok = require("@ngrok/ngrok");
-
-        if (!NGROK_AUTHTOKEN) {
-          throw new Error(
-            "NGROK_AUTHTOKEN is not set in the hosting environment variables."
-          );
+      // Optional Ngrok tunnel for external development access.
+      // Render and other hosts already provide a public HTTPS URL.
+      if (NGROK_AUTHTOKEN) {
+        try {
+          const ngrok = require("@ngrok/ngrok");
+          const options = { addr: PORT, authtoken: NGROK_AUTHTOKEN };
+          if (NGROK_DOMAIN) options.domain = NGROK_DOMAIN;
+          const listener = await ngrok.forward(options);
+          console.log(`🚇 Ngrok Tunnel Active: ${listener.url()}`);
+        } catch (err) {
+          console.log("⚠️ Ngrok unavailable:", err.message);
         }
-
-        const listener = await ngrok.forward({
-          addr: PORT,
-          authtoken: NGROK_AUTHTOKEN,
-          domain: NGROK_DOMAIN
-        });
-
-        console.log(
-          `🚇 Ngrok Tunnel Active: ${listener.url()}`
-        );
-
-      } catch (err) {
-        console.log("⚠️ Ngrok Error:", err.message);
+      } else {
+        console.log("ℹ️ Ngrok disabled; using the host's public URL.");
       }
 
       // RESTORE SAVED SQLITE SESSIONS
