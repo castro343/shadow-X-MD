@@ -1,26 +1,37 @@
 {
-  "name": "alpha-xmd",
-  "description": "Custom WhatsApp Bot by Alpha",
-  "logo": "https://raw.githubusercontent.com/Alexio11-09/alpha-xmd/main/thumbnail/image.jpg",
-  "keywords": ["whatsapp", "bot", "alpha-xmd", "baileys", "session"],
-  "repository": "https://github.com/Alexio11-09/alpha-xmd.git",
+  "name": "SHADOW X MD",
+  "description": "SHADOW X MD WhatsApp automation bot",
+  "logo": "https://raw.githubusercontent.com/castro343/shadow-X-MD/main/thumbnail/image.jpg",
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "shadow-x-md",
+    "baileys",
+    "pairing"
+  ],
+  "repository": "https://github.com/castro343/shadow-X-MD.git",
   "scripts": {
     "start": "node index.js"
   },
   "env": {
-    "SESSION_ID": {
-      "description": "REQUIRED: Your WhatsApp session ID.",
+    "OWNER_NUMBER": {
+      "description": "Primary bot owner number in international format, digits only.",
       "value": "",
       "required": true
-    },
-    "PREFIX": {
-      "description": "Bot command prefix",
-      "value": ".",
-      "required": false
     },
     "BOT_MODE": {
       "description": "Bot operating mode (public or private).",
       "value": "public",
+      "required": false
+    },
+    "NEWSLETTER_ID": {
+      "description": "Optional WhatsApp Channel ID for forwarded newsletter context.",
+      "value": "",
+      "required": false
+    },
+    "NGROK_AUTHTOKEN": {
+      "description": "Optional. Only needed if you want an additional Ngrok tunnel.",
+      "value": "",
       "required": false
     }
   },
