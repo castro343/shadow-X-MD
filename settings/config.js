@@ -1,72 +1,41 @@
-// © 2026 Alpha. All Rights Reserved.
+// SHADOW X MD configuration
+const fs = require('fs');
 
-const fs = require('fs')
+const OWNER_NUMBER = String(process.env.OWNER_NUMBER || '').replace(/\D/g, '');
 
 const config = {
-
-    // 🔥 OWNER (PRIMARY)
-    owner: ["263784969735"], // your number
-
-    botNumber: "263784969735",
-
-    // 🔐 PAIR NAME
-    setPair: "ALPHA-XMD",
-
-    // 🖼️ THUMBNAIL — from your GitHub repo
-    thumbUrl: "https://raw.githubusercontent.com/Alexio11-09/alpha-xmd/main/thumbnail/image.jpg",
-
-    // 📁 SESSION FOLDER
-    session: "session",
-
-    // ⚙️ BOT MODE
-    mode: "public",
-
-    // 🤖 AUTO FEATURES
-    auto: {
-        read: false,
-        typing: false,
-        react: false,
-        antidelete: false
-    },
-
-    // 📊 STATUS SETTINGS
-    status: {
-        public: true,
-        terminal: true,
-        reactsw: false
-    },
-
-    // 💬 MESSAGES
+    owner: OWNER_NUMBER ? [OWNER_NUMBER] : [],
+    botNumber: OWNER_NUMBER,
+    setPair: 'SHADOW-X-MD',
+    thumbUrl: 'https://raw.githubusercontent.com/castro343/shadow-X-MD/main/thumbnail/image.jpg',
+    session: 'sessions',
+    mode: process.env.BOT_MODE || 'public',
+    auto: { read: false, typing: false, react: false, antidelete: false },
+    status: { public: true, terminal: true, reactsw: false },
     message: {
-        owner: "❌Hey you fool this command is for the bot owner only.",
-        group: "❌Hey stop that, this command works in groups only.",
-        admin: "❌Hey hey hey,first become an admin here and use this command ok.",
-        private: "❌ Don't be dumb,this command is for private chat."
+        owner: 'This command is reserved for the SHADOW owner.',
+        group: 'This command works in groups only.',
+        admin: 'Only group admins can use this command.',
+        private: 'This command works in private chat only.'
     },
-
-    // 🎨 BOT UI
     settings: {
-        title: "ALPHA-XMD BOT",
-        description: "Custom WhatsApp Bot by Alpha",
-        footer: "⚡ Powered by Alpha-XMD",
-        menuSongUrl: ""
+        title: 'SHADOW X MD',
+        description: 'SHADOW X MD WhatsApp automation bot',
+        footer: 'POWERED BY SHADOW',
+        menuSongUrl: ''
     },
-
-    // 📢 CHANNEL / NEWSLETTER
     newsletter: {
-        name: "ALPHA_XMD_UPDATES",
-        id: "120363406868236363"
+        name: 'SHADOW_XMD_UPDATES',
+        id: process.env.NEWSLETTER_ID || '120363406868236363'
     }
-
-}
+};
 
 module.exports = config;
 
-// 🔄 HOT RELOAD
-let file = require.resolve(__filename)
+const file = require.resolve(__filename);
 fs.watchFile(file, () => {
-  fs.unwatchFile(file)
-  console.log(__filename + ' updated!')
-  delete require.cache[file]
-  require(file)
-})
+    fs.unwatchFile(file);
+    console.log(__filename + ' updated!');
+    delete require.cache[file];
+    require(file);
+});
