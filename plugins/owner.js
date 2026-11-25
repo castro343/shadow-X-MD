@@ -1,5 +1,6 @@
 const nativeFs=require('fs'),{exec}=require('child_process'),os=require('os'),path=require('path'),{downloadContentFromMessage}=require('@whiskeysockets/baileys'),cl=j=>j?j.replace(/[^0-9]/g,''):'';
 const tenant=require('../library/tenant');
+const { deleteSession }=require('../library/postgresAuth');
 
 // Redirect this plugin's per-account JSON database operations to PostgreSQL.
 // Temporary files and other filesystem operations continue using native fs.
@@ -62,7 +63,7 @@ module.exports=[
 {command:"antispam",category:"owner",owner:!0,execute:async(s,m,{args:a,reply:r})=>{let p=dbPath(s,'antispam.json'),c=a[0]?.toLowerCase();if(c==='on'||c==='off'){fs.writeFileSync(p,`{"enabled":${c==='on'?1:0}}`);r(`🛡️ ${c.toUpperCase()}`)}else{let d=fs.existsSync(p)?JSON.parse(fs.readFileSync(p)):{enabled:0};r(`🛡️ ${d.enabled?'ON':'OFF'}`)}}},
 {command:"chatbot",category:"owner",owner:!0,execute:async(s,m,{args:a,reply:r})=>{let p=dbPath(s,'chatbot.json'),c=a[0]?.toLowerCase();if(c==='on'||c==='off'){fs.writeFileSync(p,`{"enabled":${c==='on'?1:0}}`);r(`🤖 ${c.toUpperCase()}`)}else{let d=fs.existsSync(p)?JSON.parse(fs.readFileSync(p)):{enabled:0};r(`🤖 ${d.enabled?'ON':'OFF'}`)}}},
 {command:"clear",aliases:["purge"],category:"owner",owner:!0,execute:async(s,m,{reply:r})=>{try{const lastMsg=m.quoted||m;await s.chatModify({clear:true,lastMessages:[{key:lastMsg.key,messageTimestamp:lastMsg.messageTimestamp}]},m.chat);}catch(e){console.log("Clear error:",e.message)}}},
-{command:"clearsession",category:"owner",owner:!0,execute:async(s,m,{reply:r})=>{let d=path.join(__dirname,'..','sessions',m.sender.split('@')[0].split(':')[0]);if(fs.existsSync(d))fs.rmSync(d,{recursive:true,force:true});await r("✅ Cleared. Disconnecting...");setTimeout(async()=>{try{await s.logout()}catch{}},2000)}},
+{command:"clearsession",category:"owner",owner:!0,execute:async(s,m,{reply:r})=>{try{const phone=tenant.phoneOf(s);if(!phone)return r("❌ Could not identify this bot session.");await deleteSession(phone);tenant.forget(phone);const d=path.join(tenant.SESSIONS,phone);if(fs.existsSync(d))fs.rmSync(d,{recursive:true,force:true});await r("✅ This bot account's saved session and account data were cleared. Disconnecting...");setTimeout(async()=>{try{await s.logout()}catch{}},2000)}catch(e){r("❌ Could not clear session: "+e.message)}}},
 {command:"sudo",category:"owner",owner:!0,execute:async(s,m,{args:a,reply:r})=>{let t=T(a[1],m),c=a[0]?.toLowerCase();if(c==='add'&&t){let o=LO(s),n=cl(t);if(!o.tempOwners.includes(n)){o.tempOwners.push(n);SO(o,s);r(`👑 Added @${t.split('@')[0]}`)}}else if(c==='del'&&t){let o=LO(s),n=cl(t),i=o.tempOwners.indexOf(n);if(i>-1){o.tempOwners.splice(i,1);SO(o,s);r(`✅ Removed @${t.split('@')[0]}`)}}else r("Usage: .sudo add/del @user")}},
 {command:"bothosting",category:"owner",owner:!0,execute:async(s,m,{reply:r})=>{r("🖥️ Coming soon.")}},
 {command:"webzip",category:"owner",owner:!0,execute:async(s,m,{reply:r})=>{r("📦 Dev.")}},
