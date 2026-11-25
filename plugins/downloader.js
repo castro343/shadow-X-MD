@@ -28,11 +28,12 @@ setInterval(cleanTmp, 30 * 60 * 1000).unref();
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const tmpFile = (prefix, ext = '.mp4') => path.join(TMP_DIR, `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}${ext}`);
 
+const { pipeline } = require('stream/promises');
+
 const dl = async (u, o) => {
-  const w = fs.createWriteStream(o);
   const r = await ax({ url: u, method: 'GET', responseType: 'stream', timeout: 12e4, headers: { 'User-Agent': 'Mozilla/5.0' } });
-  r.data.pipe(w);
-  return new Promise((a, b) => { w.on('finish', a); w.on('error', b); });
+  await pipeline(r.data, fs.createWriteStream(o, { flags: 'wx' }));
+  return o;
 };
 
 const B = c => ({ forwardingScore: 999, isForwarded: true, forwardedNewsletterMessageInfo: { newsletterJid: c?.newsletter?.id + '@newsletter', newsletterName: c?.newsletter?.name } });
