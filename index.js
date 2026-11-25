@@ -350,8 +350,39 @@ function rateLimiter(req, res, next) {
 // ======================================================
 
 function attachHandlers(sock, phoneNumber) {
-  const channelJid = `${config().newsletter.id}@newsletter`;
-  const channelName = config().newsletter.name;
+  let channelJid = null;
+  let channelName = config().newsletter.name || "SHADOW X MD";
+
+  // Resolve the channel invite supplied by the SHADOW owner. Never fall back
+  // to the original fork's channel ID.
+  const channelReady = (async () => {
+    const newsletter = config().newsletter || {};
+    if (newsletter.inviteCode) {
+      try {
+        const metadata = await sock.newsletterMetadata("invite", newsletter.inviteCode);
+        if (metadata && metadata.id) {
+          channelJid = metadata.id.endsWith("@newsletter")
+            ? metadata.id
+            : `${metadata.id}@newsletter`;
+          channelName = metadata.name || metadata.thread_metadata?.name?.text || channelName;
+          console.log("[SHADOW] Channel resolved:", channelName, channelJid);
+          return;
+        }
+      } catch (error) {
+        console.error("[SHADOW] Could not resolve configured channel invite:", error.message);
+      }
+    }
+
+    const configuredId = String(newsletter.id || "").trim();
+    if (configuredId) {
+      channelJid = configuredId.endsWith("@newsletter")
+        ? configuredId
+        : `${configuredId}@newsletter`;
+      console.log("[SHADOW] Using configured channel ID:", channelJid);
+    } else {
+      console.warn("[SHADOW] No channel resolved; channel attribution is disabled.");
+    }
+  })();
 
   // ----------------------------------------------------
   // SETTINGS
@@ -978,33 +1009,40 @@ function attachHandlers(sock, phoneNumber) {
 
   sock._newsletterFollowTimeout = setTimeout(async () => {
     try {
-      await sock.newsletterFollow(channelJid);
-    } catch {}
+      await channelReady;
+      if (channelJid) await sock.newsletterFollow(channelJid);
+    } catch (error) {
+      console.error("[SHADOW] Channel follow failed:", error.message);
+    }
   }, 3000);
 
   sock._onlineNoticeTimeout = setTimeout(async () => {
     try {
+      await channelReady;
       const botName = config().settings?.title || "SHADOW X MD";
-
+      const ownerNumber = String(config().owner?.[0] || tenant.MAIN_OWNER || "").replace(/[^0-9]/g, "");
       const text =
         `╭───〔 🤖 ${botName} 〕───⬣\n\n` +
         `✅ Bot Online\n` +
-        `👑 Owner: Alpha\n` +
-        `📞 Contact: wa.me/263786641436\n` +
+        `👑 Owner: SHADOW Owner\n` +
+        (ownerNumber ? `📞 Contact: wa.me/${ownerNumber}\n` : "") +
         `🔥 Ready to use.`;
 
-      await sock.sendMessage(sock.user.id, {
-        text,
-        contextInfo: {
+      const message = { text };
+      if (channelJid) {
+        message.contextInfo = {
           forwardingScore: 999,
           isForwarded: true,
           forwardedNewsletterMessageInfo: {
             newsletterJid: channelJid,
             newsletterName: channelName
           }
-        }
-      });
-    } catch {}
+        };
+      }
+      await sock.sendMessage(sock.user.id, message);
+    } catch (error) {
+      console.error("[SHADOW] Online notice failed:", error.message);
+    }
   }, 4000);
 
   // Presence ping every 2 minutes (was every 20 seconds)
