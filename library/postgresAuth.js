@@ -73,11 +73,14 @@ async function usePostgresAuthState(sessionId) {
   };
 
   const readData = async (id) => {
-    try {
-      await initPromise;
-      const res = await pool.query('SELECT key_data FROM whatsapp_sessions WHERE session_id = $1 AND key_id = $2', [sessionId, id]);
-      return res.rows.length ? JSON.parse(res.rows[0].key_data, reviver) : null;
-    } catch (e) { return null; }
+    // A database error must never look like a missing auth key. Returning null
+    // here could make Baileys initialize fresh credentials over a saved session.
+    await initPromise;
+    const res = await pool.query(
+      'SELECT key_data FROM whatsapp_sessions WHERE session_id = $1 AND key_id = $2',
+      [sessionId, id]
+    );
+    return res.rows.length ? JSON.parse(res.rows[0].key_data, reviver) : null;
   };
 
   const creds = (await readData('creds')) || initAuthCreds();
@@ -154,10 +157,8 @@ async function usePostgresAuthState(sessionId) {
 
 async function getAllSavedSessions() {
   await initPromise;
-  try {
-    const res = await pool.query('SELECT DISTINCT session_id FROM whatsapp_sessions');
-    return res.rows.map(row => row.session_id);
-  } catch (e) { return []; }
+  const res = await pool.query('SELECT DISTINCT session_id FROM whatsapp_sessions');
+  return res.rows.map(row => row.session_id);
 }
 
 async function deleteSession(sessionId) {
