@@ -162,12 +162,20 @@ async function getAllSavedSessions() {
 
 async function deleteSession(sessionId) {
   await initPromise;
+  const client = await pool.connect();
   try {
-    await pool.query('DELETE FROM whatsapp_sessions WHERE session_id = $1', [sessionId]);
-    await pool.query('DELETE FROM whatsapp_settings WHERE session_id = $1', [sessionId]);
-    await pool.query('DELETE FROM whatsapp_control_tokens WHERE session_id = $1', [sessionId]);
-    await pool.query('DELETE FROM whatsapp_tenant_data WHERE session_id = $1', [sessionId]);
-  } catch (e) {}
+    await client.query('BEGIN');
+    await client.query('DELETE FROM whatsapp_sessions WHERE session_id = $1', [sessionId]);
+    await client.query('DELETE FROM whatsapp_settings WHERE session_id = $1', [sessionId]);
+    await client.query('DELETE FROM whatsapp_control_tokens WHERE session_id = $1', [sessionId]);
+    await client.query('DELETE FROM whatsapp_tenant_data WHERE session_id = $1', [sessionId]);
+    await client.query('COMMIT');
+  } catch (error) {
+    try { await client.query('ROLLBACK'); } catch {}
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 async function getTenantData(sessionId) {
