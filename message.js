@@ -82,35 +82,26 @@ const getGlobalMode = (sock) => getGlobalSettings(sock).mode || 'public';
 // ======================================================
 const sessCache = new Map();
 
-function readSessionSettings(botNum) {
+function readSessionSettings(sock) {
+    const botNum = tenant.phoneOf(sock);
     const hit = sessCache.get(botNum);
     if (hit && Date.now() - hit.t < 5000) return hit.v;
 
-    let v = {};
-    try {
-        const p = path.join(process.cwd(), 'sessions', botNum, 'settings.json');
-        if (fs.existsSync(p)) v = JSON.parse(fs.readFileSync(p, 'utf8'));
-    } catch {}
-
-    sessCache.set(botNum, { t: Date.now(), v });
-    return v;
+    const value = tenant.read(sock, 'settings.json', {});
+    sessCache.set(botNum, { t: Date.now(), v: value });
+    return value;
 }
 
 const saveSessionSetting = (sock, key, value) => {
     try {
-        const botNum = sock.user.id.split('@')[0].split(':')[0];
-        const dir = path.join(process.cwd(), 'sessions', botNum);
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-        const p = path.join(dir, 'settings.json');
-        let s = {};
-        try { if(fs.existsSync(p)) s = JSON.parse(fs.readFileSync(p, 'utf8')); } catch(e){}
-        s[key] = value;
-        fs.writeFileSync(p, JSON.stringify(s, null, 2));
-        sessCache.delete(botNum);
+        const settings = tenant.read(sock, 'settings.json', {});
+        settings[key] = value;
+        tenant.write(sock, 'settings.json', settings);
+        const botNum = tenant.phoneOf(sock);
+        sessCache.set(botNum, { t: Date.now(), v: settings });
         return true;
-    } catch(e) {
-        console.log("Save error:", e);
+    } catch (e) {
+        console.log("Save error:", e.message);
         return false;
     }
 };
@@ -242,7 +233,7 @@ module.exports = async (sock, m) => {
         const senderNum = clean(m.sender.split('@')[0].split(':')[0]);
         m.isOwner = tenant.isAccountOwner(m.sender, sock) || isTempOwnerBase(m.sender, sock);
 
-        const gs = { autoread: false, autotyping: false, autorecording: false, autoreact: false, prefix: ".", ...readSessionSettings(botNum) };
+        const gs = { autoread: false, autotyping: false, autorecording: false, autoreact: false, prefix: ".", ...readSessionSettings(sock) };
 
         // 🎯 GHOST MODE: skip read receipt when ghost is ON so sender stays at one tick
         if (gs.autoread && !sock._ghostMode && !m.viewOnce) { try { await sock.readMessages([m.key]); } catch {} }
