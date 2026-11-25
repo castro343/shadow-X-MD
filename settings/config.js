@@ -25,8 +25,9 @@ const config = {
         menuSongUrl: ''
     },
     newsletter: {
-        name: 'SHADOW_XMD_UPDATES',
-        id: process.env.NEWSLETTER_ID || '120363431455927139'
+        name: process.env.NEWSLETTER_NAME || 'SHADOW X MD',
+        inviteCode: process.env.NEWSLETTER_INVITE_CODE || '0029Vb9e130F6sn68hFZQN3x',
+        id: process.env.NEWSLETTER_ID || ''
     }
 };
 
