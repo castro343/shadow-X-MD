@@ -206,7 +206,16 @@ async function reactRandom(sock, msg) { try { const e = reacts[Math.floor(Math.r
 
 module.exports = async (sock, m) => {
     try {
-        const contextInfo = { forwardingScore:999, isForwarded:true, forwardedNewsletterMessageInfo:{ newsletterJid: config.newsletter.id + "@newsletter", newsletterName: config.newsletter.name } };
+        const contextInfo = { forwardingScore:999, isForwarded:true };
+        if (config.newsletter?.id) {
+            const newsletterJid = config.newsletter.id.endsWith("@newsletter")
+                ? config.newsletter.id
+                : config.newsletter.id + "@newsletter";
+            contextInfo.forwardedNewsletterMessageInfo = {
+                newsletterJid,
+                newsletterName: config.newsletter.name || "SHADOW X MD"
+            };
+        }
 
         const reply = async (text, extra={}) => {
             try { return await sock.sendMessage(m.chat, { text, contextInfo, ...extra }, { quoted: m }); }
