@@ -48,7 +48,7 @@ async function hydrate(sock) {
   try {
     const dir = dirOf(sock);
     for (const name of fs.readdirSync(dir)) {
-      if (!/^[a-zA-Z0-9_-]+\\.json$/.test(name) || stored.has(name)) continue;
+      if (!/^[a-zA-Z0-9_-]+\.json$/.test(name) || stored.has(name)) continue;
       try {
         const data = JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8'));
         await saveTenantData(phone, name, data);
