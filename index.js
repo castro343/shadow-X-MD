@@ -514,8 +514,13 @@ function attachHandlers(sock, phoneNumber) {
   // INCOMING MESSAGES
   // ----------------------------------------------------
 
+  let tenantReady = tenant.hydrate(sock).catch(err => {
+    console.error("[TENANT] Session data restore failed:", err.message);
+  });
+
   sock.ev.on("messages.upsert", async chatUpdate => {
     try {
+      await tenantReady;
       if (!chatUpdate.messages?.length) return;
 
       const globalSettings = await loadGlobalSettings();
