@@ -212,22 +212,20 @@ async function getControlToken(sessionId) {
 
 async function getSessionSettings(sessionId) {
   await initPromise;
-  try {
-    const res = await pool.query('SELECT settings FROM whatsapp_settings WHERE session_id = $1', [sessionId]);
-    if (res.rows.length > 0) return res.rows[0].settings;
-  } catch (e) {}
-  return null;
+  const res = await pool.query(
+    'SELECT settings FROM whatsapp_settings WHERE session_id = $1',
+    [sessionId]
+  );
+  return res.rows.length > 0 ? res.rows[0].settings : null;
 }
 
 async function saveSessionSettings(sessionId, settings) {
   await initPromise;
-  try {
-    await pool.query(
-      `INSERT INTO whatsapp_settings (session_id, settings) VALUES ($1, $2)
-       ON CONFLICT (session_id) DO UPDATE SET settings = EXCLUDED.settings;`,
-      [sessionId, JSON.stringify(settings)]
-    );
-  } catch (e) {}
+  await pool.query(
+    `INSERT INTO whatsapp_settings (session_id, settings) VALUES ($1, $2)
+     ON CONFLICT (session_id) DO UPDATE SET settings = EXCLUDED.settings;`,
+    [sessionId, JSON.stringify(settings)]
+  );
 }
 
 function replacer(key, value) {
