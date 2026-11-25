@@ -25,7 +25,14 @@ async function initTables() {
         session_id VARCHAR(255) PRIMARY KEY,
         settings JSONB NOT NULL
       );
-      CREATE TABLE IF NOT EXISTS whatsapp_control_tokens (
+      CREATE TABLE IF NOT EXISTS whatsapp_tenant_data (
+        session_id VARCHAR(255) NOT NULL,
+        data_key VARCHAR(255) NOT NULL,
+        data_value JSONB NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        PRIMARY KEY (session_id, data_key)
+      );
+            CREATE TABLE IF NOT EXISTS whatsapp_control_tokens (
         session_id VARCHAR(255) PRIMARY KEY,
         token_hash VARCHAR(128) NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -142,7 +149,28 @@ async function deleteSession(sessionId) {
     await pool.query('DELETE FROM whatsapp_sessions WHERE session_id = $1', [sessionId]);
     await pool.query('DELETE FROM whatsapp_settings WHERE session_id = $1', [sessionId]);
     await pool.query('DELETE FROM whatsapp_control_tokens WHERE session_id = $1', [sessionId]);
+    await pool.query('DELETE FROM whatsapp_tenant_data WHERE session_id = $1', [sessionId]);
   } catch (e) {}
+}
+
+async function getTenantData(sessionId) {
+  await initPromise;
+  const res = await pool.query(
+    'SELECT data_key, data_value FROM whatsapp_tenant_data WHERE session_id = $1',
+    [sessionId]
+  );
+  return res.rows;
+}
+
+async function saveTenantData(sessionId, key, value) {
+  await initPromise;
+  await pool.query(
+    `INSERT INTO whatsapp_tenant_data (session_id, data_key, data_value)
+     VALUES ($1, $2, $3::jsonb)
+     ON CONFLICT (session_id, data_key)
+     DO UPDATE SET data_value = EXCLUDED.data_value, updated_at = NOW()`,
+    [sessionId, key, JSON.stringify(value)]
+  );
 }
 
 async function saveControlToken(sessionId, tokenHash) {
@@ -196,6 +224,8 @@ module.exports = {
   deleteSession,
   getSessionSettings,
   saveSessionSettings,
+  getTenantData,
+  saveTenantData,
   saveControlToken,
   getControlToken,
   cleanupOldSignalKeys: async () => {}
