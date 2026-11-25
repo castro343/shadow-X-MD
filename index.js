@@ -365,6 +365,8 @@ function attachHandlers(sock, phoneNumber) {
             ? metadata.id
             : `${metadata.id}@newsletter`;
           channelName = metadata.name || metadata.thread_metadata?.name?.text || channelName;
+          newsletter.id = channelJid.replace("@newsletter", "");
+          newsletter.name = channelName;
           console.log("[SHADOW] Channel resolved:", channelName, channelJid);
           return;
         }
@@ -378,6 +380,7 @@ function attachHandlers(sock, phoneNumber) {
       channelJid = configuredId.endsWith("@newsletter")
         ? configuredId
         : `${configuredId}@newsletter`;
+      newsletter.id = channelJid.replace("@newsletter", "");
       console.log("[SHADOW] Using configured channel ID:", channelJid);
     } else {
       console.warn("[SHADOW] No channel resolved; channel attribution is disabled.");
