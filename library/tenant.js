@@ -35,10 +35,30 @@ async function hydrate(sock) {
   const phone = phoneOf(sock);
   if (!phone || hydrated.has(phone)) return;
   const rows = await getTenantData(phone);
+  const stored = new Set();
   for (const row of rows) {
     const key = phone + '/' + row.data_key;
     const raw = JSON.stringify(row.data_value);
-    cache.set(key, { t: Date.now(), raw });
+    cache.set(key, { t: Infinity, raw });
+    stored.add(row.data_key);
+  }
+
+  // One-time migration: preserve existing local tenant JSON files when
+  // they have not yet been copied into PostgreSQL.
+  try {
+    const dir = dirOf(sock);
+    for (const name of fs.readdirSync(dir)) {
+      if (!/^[a-zA-Z0-9_-]+\\.json$/.test(name) || stored.has(name)) continue;
+      try {
+        const data = JSON.parse(fs.readFileSync(path.join(dir, name), 'utf8'));
+        await saveTenantData(phone, name, data);
+        cache.set(phone + '/' + name, { t: Infinity, raw: JSON.stringify(data) });
+      } catch (error) {
+        console.error('[TENANT] Could not migrate', name, 'for session', phone, error.message);
+      }
+    }
+  } catch (error) {
+    console.error('[TENANT] Local migration skipped for session', phone, error.message);
   }
   hydrated.add(phone);
 }
@@ -85,6 +105,7 @@ function write(sock, name, data) {
 function forget(phone) {
   const prefix = String(phone) + '/';
   for (const k of cache.keys()) if (k.startsWith(prefix)) cache.delete(k);
+  hydrated.delete(String(phone));
 }
 
 function isMainOwner(sender) {
