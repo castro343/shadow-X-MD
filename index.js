@@ -1910,7 +1910,7 @@ app.post("/api/settings", async (req, res) => {
 
       // RESTORE SAVED POSTGRESQL SESSIONS
       try {
-        const sessions = (await getAllSavedSessions()).filter(phone => /^\\d{10,15}$/.test(phone));
+        const sessions = (await getAllSavedSessions()).filter(phone => /^\d{10,15}$/.test(phone));
         console.log(`📂 Found ${sessions.length} PostgreSQL session(s) (cap: ${MAX_SESSIONS}):`, sessions.join(", "));
         for (const phone of sessions.slice(0, MAX_SESSIONS)) {
           await startBot(phone);
