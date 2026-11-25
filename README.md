@@ -18,7 +18,7 @@
     <a href="https://github.com/Alexio11-09/shadow-X-MD/fork">
       <img src="https://img.shields.io/badge/🍴_FORK_REPO-SHADOW_XMD-0f172a?style=for-the-badge&logo=github&logoColor=white" alt="Fork Repo"/>
     </a>
-    <a href="https://whatsapp.com/channel/0029Vb7nHdBFnSzBDbvL6y1X">
+    <a href="https://whatsapp.com/channel/0029Vb9e130F6sn68hFZQN3x">
       <img src="https://img.shields.io/badge/📢_CHANNEL-Join_Now-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Channel"/>
     </a>
   </p>
@@ -87,7 +87,7 @@ pkg update -y && pkg upgrade -y && pkg install nodejs git ffmpeg -y && cd ~ && r
 ```
 
 After the install finishes, the bot will ask for your WhatsApp number.
-Enter it with the country code (e.g., 263786641436), grab the pairing code, and you're live.
+Enter it with the country code (e.g., 2547XXXXXXXX), grab the pairing code, and you're live.
 
 Next time you just run:
 
@@ -124,8 +124,8 @@ Store server logins and send them to users with a single command.
 🤝 Community & Support
 
 <div align="center">
-  <a href="https://whatsapp.com/channel/0029Vb7nHdBFnSzBDbvL6y1X">
-    <img src="https://img.shields.io/badge/📢_ALPHA_UPDATES-Join_Channel-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Channel"/>
+  <a href="https://whatsapp.com/channel/0029Vb9e130F6sn68hFZQN3x">
+    <img src="https://img.shields.io/badge/📢_SHADOW_UPDATES-Join_Channel-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Channel"/>
   </a>
   <a href="https://chat.whatsapp.com/IWvvBvg8eRXC7F6Ni8Yq2S?mode=gi_t">
     <img src="https://img.shields.io/badge/💬_CHAT_GROUP-Help_&_Fun-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Group"/>
