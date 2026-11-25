@@ -322,7 +322,9 @@ module.exports = async (sock, m) => {
 
         const args = m.text.slice(prefix.length).trim().split(/ +/);
         const cmdName = args.shift().toLowerCase();
-        const command = commands.find(c => c.command === cmdName || (c.aliases && c.aliases.includes(cmdName)));
+        const matchesCommand = c => c.command === cmdName || (c.aliases && c.aliases.includes(cmdName));
+        // Prefer a non-owner duplicate for regular users; owners retain the owner handler.
+        const command = commands.find(c => matchesCommand(c) && (!c.owner || m.isOwner)) || commands.find(matchesCommand);
         if (!command) return;
 
         // 🔒 Dangerous commands: main owner only
