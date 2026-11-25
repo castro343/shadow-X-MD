@@ -123,6 +123,12 @@ const loadCommands = (dir) => {
 };
 loadCommands(path.join(__dirname, "plugins"));
 
+const commandNames = new Set(commands.map(c => String(c.command || '').toLowerCase()).filter(Boolean));
+const aliasNames = new Set(commands.flatMap(c => Array.isArray(c.aliases) ? c.aliases : []).map(a => String(a).toLowerCase()));
+const duplicateNames = [...commandNames].filter(name => commands.filter(c => String(c.command || '').toLowerCase() === name).length > 1);
+console.log(`[COMMANDS] Registered ${commands.length} command handlers, ${commandNames.size} primary names and ${aliasNames.size} aliases.`);
+if (duplicateNames.length) console.warn('[COMMANDS] Duplicate primary names:', duplicateNames.join(', '));
+
 // Plugins can add an onMessage(sock, m, helpers) function to a command to look at every group message
 // (used by .antistatusgroupmention). It runs before the "is this a command?" check.
 const hooks = commands.filter(c => typeof c.onMessage === 'function');
