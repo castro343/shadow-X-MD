@@ -1,23 +1,18 @@
-// © 2026 Alpha - CPANEL MANAGEMENT (OWNER + PREMIUM) – FIXED OWNER CHECK
-const fs = require('fs');
-const path = require('path');
-
-// ---------- DATABASES ----------
+// SHADOW X MD - CPANEL MANAGEMENT (OWNER + PREMIUM)
 const tenant = require('../library/tenant');
-const premiumPath = path.join(process.cwd(), 'database', 'cpanel_premium.json');
-if (!fs.existsSync('./database')) fs.mkdirSync('./database', { recursive: true });
-if (!fs.existsSync(premiumPath)) fs.writeFileSync(premiumPath, '[]');
-const serverPathFor = (sock) => tenant.fileOf(sock, 'cpanel_servers.json');
-const loadServers = (sock) => { try { return JSON.parse(fs.readFileSync(serverPathFor(sock), 'utf8')); } catch { return []; } };
-const saveServers = (sock, data) => fs.writeFileSync(serverPathFor(sock), JSON.stringify(data, null, 2));
+
+// All panel stock and premium access are isolated per WhatsApp account
+// and persisted through the shared PostgreSQL tenant store.
+const loadServers = (sock) => tenant.read(sock, 'cpanel_servers.json', []);
+const saveServers = (sock, data) => tenant.write(sock, 'cpanel_servers.json', data);
 const nextServerId = (sock) => { const servers = loadServers(sock); const ids = servers.map(s => Number(s.id) || 0); return ids.length ? Math.max(...ids) + 1 : 1; };
-const loadPremium = () => { try { return JSON.parse(fs.readFileSync(premiumPath, 'utf8')); } catch { return []; } };
-const savePremium = (data) => fs.writeFileSync(premiumPath, JSON.stringify(data, null, 2));
+const loadPremium = (sock) => tenant.read(sock, 'cpanel_premium.json', []);
+const savePremium = (sock, data) => tenant.write(sock, 'cpanel_premium.json', data);
 const cleanNumber = (num) => String(num || '').replace(/[^0-9]/g, '');
-const isMainOwner = (sender) => cleanNumber(sender) === tenant.MAIN_OWNER;
+const isMainOwner = (sender) => !!tenant.MAIN_OWNER && cleanNumber(sender) === tenant.MAIN_OWNER;
 const isAccountOwner = (sender, sock) => tenant.isAccountOwner(sender, sock);
-const isPremium = (sender) => loadPremium().includes(cleanNumber(sender));
-const canManagePanels = (sender, sock) => isMainOwner(sender) || isAccountOwner(sender, sock) || isPremium(sender);
+const isPremium = (sender, sock) => loadPremium(sock).includes(cleanNumber(sender));
+const canManagePanels = (sender, sock) => isMainOwner(sender) || isAccountOwner(sender, sock) || isPremium(sender, sock);
 
 // ---------- SEND SERVER DETAILS TO A USER ----------
 const sendServerToUser = async (sock, server, targetName, targetNumber) => {
@@ -144,11 +139,11 @@ module.exports = [
             const number = cleanNumber(args[0]);
             if (number.length < 7) return reply("❌ Invalid number.");
 
-            const premium = loadPremium();
+            const premium = loadPremium(sock);
             if (premium.includes(number)) return reply("❌ Already premium.");
 
             premium.push(number);
-            savePremium(premium);
+            savePremium(sock, premium);
             reply(`👑 Premium granted to +${number}.`);
         }
     },
@@ -162,12 +157,12 @@ module.exports = [
             if (!args[0]) return reply("❌ Usage: .delprem <phone_number>");
 
             const number = cleanNumber(args[0]);
-            const premium = loadPremium();
+            const premium = loadPremium(sock);
             const index = premium.indexOf(number);
             if (index === -1) return reply("❌ Not premium.");
 
             premium.splice(index, 1);
-            savePremium(premium);
+            savePremium(sock, premium);
             reply(`✅ Premium removed from +${number}.`);
         }
     },
@@ -176,9 +171,9 @@ module.exports = [
         aliases: ["premlist", "listprem"],
         category: "cpanel",
         execute: async (sock, m, { reply, config }) => {
-            if (!isMainOwner(m.sender) && !isPremium(m.sender)) return reply("❌ Only owner or premium can view the list.");
+            if (!isMainOwner(m.sender) && !isPremium(m.sender, sock)) return reply("❌ Only owner or premium can view the list.");
 
-            const premium = loadPremium();
+            const premium = loadPremium(sock);
             if (premium.length === 0) return reply("📋 No premium users.");
 
             let text = `👑 *PREMIUM USERS (${premium.length})*\n\n`;
