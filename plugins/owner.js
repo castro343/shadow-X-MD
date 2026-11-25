@@ -1,5 +1,37 @@
-const fs=require('fs'),{exec}=require('child_process'),os=require('os'),path=require('path'),{downloadContentFromMessage}=require('@whiskeysockets/baileys'),cl=j=>j?j.replace(/[^0-9]/g,''):'';
+const nativeFs=require('fs'),{exec}=require('child_process'),os=require('os'),path=require('path'),{downloadContentFromMessage}=require('@whiskeysockets/baileys'),cl=j=>j?j.replace(/[^0-9]/g,''):'';
 const tenant=require('../library/tenant');
+
+// Redirect this plugin's per-account JSON database operations to PostgreSQL.
+// Temporary files and other filesystem operations continue using native fs.
+const fs=Object.create(nativeFs);
+const tenantSockFor = (file) => {
+  const full = path.resolve(String(file));
+  const root = path.resolve(tenant.SESSIONS) + path.sep;
+  if (!full.startsWith(root)) return null;
+  const relative = full.slice(root.length).split(path.sep);
+  const phone = relative.shift();
+  if (!/^\d{7,15}$/.test(phone) || relative.length !== 1 || !/^[a-zA-Z0-9_-]+\.json$/.test(relative[0])) return null;
+  return { user: { id: phone + '@s.whatsapp.net' } };
+};
+fs.existsSync = (file) => {
+  const sock = tenantSockFor(file);
+  if (!sock) return nativeFs.existsSync(file);
+  return tenant.read(sock, path.basename(String(file)), null) !== null;
+};
+fs.readFileSync = (file, ...args) => {
+  const sock = tenantSockFor(file);
+  if (!sock) return nativeFs.readFileSync(file, ...args);
+  const value = tenant.read(sock, path.basename(String(file)), null);
+  if (value === null) throw new Error('Tenant data file does not exist');
+  const raw = JSON.stringify(value);
+  return args[0] ? raw : Buffer.from(raw);
+};
+fs.writeFileSync = (file, data, ...args) => {
+  const sock = tenantSockFor(file);
+  if (!sock) return nativeFs.writeFileSync(file, data, ...args);
+  const value = JSON.parse(Buffer.isBuffer(data) ? data.toString() : String(data));
+  return tenant.write(sock, path.basename(String(file)), value);
+};
 const dbPath=(sock,name)=>tenant.fileOf(sock,name);
 const LO=(sock)=>tenant.read(sock,'owners.json',{tempOwners:[]}),SO=(data,sock)=>tenant.write(sock,'owners.json',data),T=(s,m)=>m.mentionedJid?.[0]||m.quoted?.sender||(s?s.replace(/[^0-9]/g,'')+'@s.whatsapp.net':null);
 
