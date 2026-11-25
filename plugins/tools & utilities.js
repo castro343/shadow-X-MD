@@ -24,15 +24,9 @@ async function vvFetch(s, q) {
 
   if (!media) throw new Error("No media found in the normalized message.");
 
-  // Try the native Baileys downloader (handles viewOnce + re-uploads)
-  try {
-    const buf = await s.downloadMediaMessage({ message: normalized }, type.includes('image') ? 'image' : type.includes('video') ? 'video' : 'audio');
-    if (buf && buf.length > 0) return buf;
-  } catch (e) {
-    console.log('[VV NATIVE DOWNLOAD FAILED]', e.message);
-  }
-
-  // Fallback: Manual download
+  // Download through Baileys' supported media stream API.
+  // The socket object does not expose downloadMediaMessage in this runtime.
+  // Keeping this as the single path avoids a guaranteed failed call on every .vv request.
   const mtype = type.includes('image') ? 'image' : type.includes('video') ? 'video' : 'audio';
   try {
     return await rd(await dl(media, mtype)); 
