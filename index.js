@@ -492,7 +492,7 @@ function attachHandlers(sock, phoneNumber) {
         } else {
           await sock.sendMessage(call.from, {
             text:
-              `⚡ *ALPHA-XMD* ⚡\n` +
+              `⚡ *SHADOW X MD*\n` +
               `──────────────────\n` +
               `📵 *Call Blocked!*\n` +
               `Drop a text message and let's get to work. 🤖💸`,
@@ -738,7 +738,7 @@ function attachHandlers(sock, phoneNumber) {
       if (!ad.enabled && !globalSettings.antiedit) return;
 
       const ownerNumber = String(
-        tenant.MAIN_OWNER || "263784969735"
+        tenant.MAIN_OWNER || config().owner?.[0] || ""
       ).replace(/[^0-9]/g, "");
 
       const ownerJid = ownerNumber
@@ -793,7 +793,7 @@ function attachHandlers(sock, phoneNumber) {
 │ ┌─
 │ │ ${deleted}
 │ └─
-│ 🛡️ Alpha
+│ 🛡️ SHADOW X MD
 ╰──`
             : `${funnyDeleted[0]}\n\n${oldMsg.text || "Media"}`;
 
