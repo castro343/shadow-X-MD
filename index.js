@@ -26,7 +26,7 @@ const pino = require("pino");
 const chalk = require("chalk");
 const { Boom } = require("@hapi/boom");
 const { smsg } = require("./library/serialize");
-const { useSQLiteAuthState } = require("@nevi-dev/sqlite-auth");
+const { usePostgresAuthState, getAllSavedSessions, deleteSession, getSessionSettings, saveSessionSettings, saveControlToken, getControlToken } = require("./library/postgresAuth");
 const tenant = require("./library/tenant");
 const config = () => require("./settings/config");
 
@@ -1043,7 +1043,7 @@ async function startBot(phoneNumber) {
   clearReconnectTimer(phoneNumber);
 
   console.log(
-    chalk.blue(`🤖 Starting bot for ${phoneNumber} (SQLite)`)
+    chalk.blue(`🤖 Starting bot for ${phoneNumber} (PostgreSQL)`)
   );
 
   try {
@@ -1054,14 +1054,12 @@ async function startBot(phoneNumber) {
 
     const version = await getWaVersion();
 
-    const { state, saveCreds } =
-      await useSQLiteAuthState(
-        `./sessions/${phoneNumber}`,
-        {
-          dbName: "auth.db",
-          cleanOldFiles: true
-        }
-      );
+    const { state, saveCreds } = await usePostgresAuthState(phoneNumber);
+
+    const savedSettings = await getSessionSettings(phoneNumber);
+    if (savedSettings && typeof savedSettings === "object") fs.writeFileSync(path.join(sessionsDir, phoneNumber, "settings.json"), JSON.stringify(savedSettings, null, 2), { mode: 0o600 });
+    const savedTokenHash = await getControlToken(phoneNumber);
+    if (savedTokenHash) fs.writeFileSync(controlFile(phoneNumber), JSON.stringify({ tokenHash: savedTokenHash, restoredAt: new Date().toISOString() }, null, 2), { mode: 0o600 });
 
     if (activeSockets.has(phoneNumber)) return;
 
@@ -1270,14 +1268,7 @@ async function pairAccount(phoneNumber, callbacks = {}) {
   // Use the same SQLite database as startBot.
   // Never delete the session directory here.
 
-  const { state, saveCreds } =
-    await useSQLiteAuthState(
-      `./sessions/${phoneNumber}`,
-      {
-        dbName: "auth.db",
-        cleanOldFiles: true
-      }
-    );
+  const { state, saveCreds } = await usePostgresAuthState(phoneNumber);
 
   const tempSock = baileys.default({
     version,
@@ -1456,7 +1447,7 @@ function hashToken(token) {
     .digest("hex");
 }
 
-function issueControlToken(phone) {
+async function issueControlToken(phone) {
   const token = crypto.randomBytes(32).toString("hex");
 
   fs.mkdirSync(
@@ -1473,6 +1464,7 @@ function issueControlToken(phone) {
     { mode: 0o600 }
   );
 
+  await saveControlToken(phone, hashToken(token));
   return token;
 }
 
@@ -1650,7 +1642,7 @@ app.post(
       let controlToken = null;
 
       if (!existingControl) {
-        controlToken = issueControlToken(phoneNumber);
+        controlToken = await issueControlToken(phoneNumber);
       }
 
       await pairAccount(phoneNumber, {
@@ -1758,6 +1750,7 @@ app.post("/api/disconnect", async (req, res) => {
       });
     }
 
+    await deleteSession(phoneNumber);
     settingsCache.delete(phoneNumber);
     tenant.forget(phoneNumber);
 
@@ -1780,65 +1773,18 @@ app.post("/api/disconnect", async (req, res) => {
 
 app.get("/api/settings", async (req, res) => {
   const phoneNumber = req.query.phoneNumber;
-
-  if (!validPhone(phoneNumber)) {
-    return res.status(400).json({
-      success: false,
-      error: "Invalid number format."
-    });
-  }
-
-  if (!authorized(req, phoneNumber)) {
-    return res.status(403).json({
-      success: false,
-      error: "Unauthorized."
-    });
-  }
-
+  if (!validPhone(phoneNumber)) return res.status(400).json({ error: "Invalid number format." });
+  if (!authorized(req, phoneNumber)) return res.status(403).json({ error: "Unauthorized." });
   const cached = cacheGet(phoneNumber);
-
-  if (cached) {
-    return res.json(cached);
-  }
-
-  const settingsPath = path.join(
-    sessionsDir,
-    phoneNumber,
-    "settings.json"
-  );
-
+  if (cached) return res.json(cached);
   try {
-    const saved = fs.existsSync(settingsPath)
-      ? JSON.parse(fs.readFileSync(settingsPath, "utf8"))
-      : {
-          autoread: false,
-          autotyping: false,
-          autorecording: false,
-          antidelete: false,
-          antiedit: false,
-          antilink: false,
-          autoreact: false,
-          chreact: {
-            enabled: false,
-            emojis: ["💬"]
-          },
-          prefix: "."
-        };
-
+    const saved = await getSessionSettings(phoneNumber) || { autoread:false, autotyping:false, autorecording:false, antidelete:false, antiedit:false, antilink:false, autoreact:false, chreact:{ enabled:false, emojis:["💬"] }, prefix:"." };
     cacheSet(phoneNumber, saved);
     return res.json(saved);
-
-  } catch {
-    return res.status(500).json({
-      success: false,
-      error: "Could not read settings."
-    });
+  } catch (err) {
+    return res.status(500).json({ error: "Could not read settings." });
   }
 });
-
-// ======================================================
-// DASHBOARD SETTINGS - POST
-// ======================================================
 
 app.post("/api/settings", async (req, res) => {
   const { phoneNumber, settings } = req.body || {};
@@ -1889,8 +1835,8 @@ app.post("/api/settings", async (req, res) => {
   fs.mkdirSync(dir, { recursive: true });
 
   try {
-    // Always merge with what is currently saved on disk
-    const previous = readSettingsFile(phoneNumber);
+    // Merge persisted settings so dashboard changes survive restarts
+    const previous = await getSessionSettings(phoneNumber) || readSettingsFile(phoneNumber);
 
     const merged = {
       ...previous,
@@ -1907,11 +1853,8 @@ app.post("/api/settings", async (req, res) => {
       };
     }
 
-    fs.writeFileSync(
-      path.join(dir, "settings.json"),
-      JSON.stringify(merged, null, 2),
-      { mode: 0o600 }
-    );
+    await saveSessionSettings(phoneNumber, merged);
+    fs.writeFileSync(path.join(dir, "settings.json"), JSON.stringify(merged, null, 2), { mode: 0o600 });
 
     // Drop the cache so the new values load right away
     settingsCache.delete(phoneNumber);
@@ -1934,9 +1877,8 @@ app.post("/api/settings", async (req, res) => {
 
 (async () => {
   try {
-    console.log(
-      "🚀 Starting SHADOW X MD Server..."
-    );
+    console.log("🚀 Starting SHADOW X MD Server...");
+    if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required for PostgreSQL sessions.");
 
     baileys = await import("@whiskeysockets/baileys");
 
@@ -1966,30 +1908,16 @@ app.post("/api/settings", async (req, res) => {
         console.log("ℹ️ Ngrok disabled; using the host's public URL.");
       }
 
-      // RESTORE SAVED SQLITE SESSIONS
-
+      // RESTORE SAVED POSTGRESQL SESSIONS
       try {
-        const dirs = fs.readdirSync(sessionsDir);
-
-        const sessions = dirs.filter(d =>
-          /^\d{10,15}$/.test(d)
-        );
-
-        console.log(
-          `📂 Found ${sessions.length} SQLite session(s) (cap: ${MAX_SESSIONS}):`,
-          sessions.join(", ")
-        );
-
-        for (const phone of sessions) {
+        const sessions = (await getAllSavedSessions()).filter(phone => /^\\d{10,15}$/.test(phone));
+        console.log(`📂 Found ${sessions.length} PostgreSQL session(s) (cap: ${MAX_SESSIONS}):`, sessions.join(", "));
+        for (const phone of sessions.slice(0, MAX_SESSIONS)) {
           await startBot(phone);
           await delay(3000);
         }
-
       } catch (err) {
-        console.log(
-          "❌ Error loading SQLite sessions:",
-          err.message
-        );
+        console.log("❌ Error loading PostgreSQL sessions:", err.message);
       }
 
       // INTERNAL HEALTH CHECK
