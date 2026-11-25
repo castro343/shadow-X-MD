@@ -152,19 +152,12 @@ function cacheSet(phone, value) {
 
 function readSettingsFile(phone) {
   try {
-    const file = path.join(sessionsDir, phone, "settings.json");
-
-    if (fs.existsSync(file)) {
-      const data = JSON.parse(fs.readFileSync(file, "utf8"));
-
-      if (data && typeof data === "object" && !Array.isArray(data)) {
-        return data;
-      }
-    }
+    const sock = { user: { id: `${phone}@s.whatsapp.net` } };
+    const data = tenant.read(sock, "settings.json", {});
+    if (data && typeof data === "object" && !Array.isArray(data)) return data;
   } catch (err) {
     console.log(`[SETTINGS] Could not read ${phone}:`, err.message);
   }
-
   return {};
 }
 
@@ -1900,7 +1893,7 @@ app.post("/api/settings", async (req, res) => {
     }
 
     await saveSessionSettings(phoneNumber, merged);
-    fs.writeFileSync(path.join(dir, "settings.json"), JSON.stringify(merged, null, 2), { mode: 0o600 });
+    tenant.write({ user: { id: `${phoneNumber}@s.whatsapp.net` } }, "settings.json", merged);
 
     // Drop the cache so the new values load right away
     settingsCache.delete(phoneNumber);
