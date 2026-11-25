@@ -1,6 +1,7 @@
 // Per-WhatsApp-account storage helpers for SHADOW X MD.
 const fs = require('fs');
 const path = require('path');
+const { getTenantData, saveTenantData } = require('./postgresAuth');
 
 const ROOT = path.join(__dirname, '..');
 const SESSIONS = path.join(ROOT, 'sessions');
@@ -27,6 +28,20 @@ function fileOf(sock, name) {
 
 const cache = new Map();
 const TTL = 5000;
+
+const hydrated = new Set();
+
+async function hydrate(sock) {
+  const phone = phoneOf(sock);
+  if (!phone || hydrated.has(phone)) return;
+  const rows = await getTenantData(phone);
+  for (const row of rows) {
+    const key = phone + '/' + row.data_key;
+    const raw = JSON.stringify(row.data_value);
+    cache.set(key, { t: Date.now(), raw });
+  }
+  hydrated.add(phone);
+}
 
 function readRaw(sock, name) {
   const phone = phoneOf(sock);
@@ -57,7 +72,13 @@ function write(sock, name, data) {
   const body = JSON.stringify(data, null, 2);
   fs.writeFileSync(temp, body);
   fs.renameSync(temp, file);
-  cache.set(phoneOf(sock) + '/' + name, { t: Date.now(), raw: body });
+  const phone = phoneOf(sock);
+  cache.set(phone + '/' + name, { t: Date.now(), raw: body });
+  if (phone) {
+    saveTenantData(phone, name, data).catch(err =>
+      console.error('[TENANT] Could not persist', name, 'for session', phone, err.message)
+    );
+  }
   return true;
 }
 
@@ -78,6 +99,6 @@ function isAccountOwner(sender, sock) {
 module.exports = {
   ROOT, SESSIONS, MAIN_OWNER,
   phoneOf, dirOf, fileOf,
-  read, write, forget,
+  read, write, hydrate, forget,
   isMainOwner, isAccountOwner
 };
