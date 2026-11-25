@@ -1,6 +1,6 @@
 {
   "name": "shadow-x-md",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "SHADOW X MD WhatsApp automation bot",
   "main": "index.js",
   "type": "commonjs",
