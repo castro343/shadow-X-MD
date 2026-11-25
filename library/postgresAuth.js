@@ -1,6 +1,8 @@
 const { Pool } = require('pg');
 const { initAuthCreds, proto } = require('@whiskeysockets/baileys');
 
+if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required for PostgreSQL session storage.');
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
@@ -23,15 +25,22 @@ async function initTables() {
         session_id VARCHAR(255) PRIMARY KEY,
         settings JSONB NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS whatsapp_control_tokens (
+        session_id VARCHAR(255) PRIMARY KEY,
+        token_hash VARCHAR(128) NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
     `);
   } finally {
     client.release();
   }
 }
-initTables().catch(err => console.error('Database Init Error:', err.message));
+const initPromise = initTables();
+initPromise.catch(err => console.error('Database Init Error:', err.message));
 
 async function usePostgresAuthState(sessionId) {
   const writeData = async (data, id) => {
+    await initPromise;
     await pool.query(
       `INSERT INTO whatsapp_sessions (session_id, key_id, key_data) VALUES ($1, $2, $3)
        ON CONFLICT (session_id, key_id) DO UPDATE SET key_data = EXCLUDED.key_data;`,
@@ -41,6 +50,7 @@ async function usePostgresAuthState(sessionId) {
 
   const readData = async (id) => {
     try {
+      await initPromise;
       const res = await pool.query('SELECT key_data FROM whatsapp_sessions WHERE session_id = $1 AND key_id = $2', [sessionId, id]);
       return res.rows.length ? JSON.parse(res.rows[0].key_data, reviver) : null;
     } catch (e) { return null; }
@@ -53,6 +63,7 @@ async function usePostgresAuthState(sessionId) {
       creds,
       keys: {
         get: async (type, ids) => {
+          await initPromise;
           if (!ids || ids.length === 0) return {};
           const keyIds = ids.map(id => `${type}-${id}`);
           
@@ -74,6 +85,7 @@ async function usePostgresAuthState(sessionId) {
           return data;
         },
         set: async (data) => {
+          await initPromise;
           const upserts = [];
           const deletes = [];
 
@@ -117,6 +129,7 @@ async function usePostgresAuthState(sessionId) {
 }
 
 async function getAllSavedSessions() {
+  await initPromise;
   try {
     const res = await pool.query('SELECT DISTINCT session_id FROM whatsapp_sessions');
     return res.rows.map(row => row.session_id);
@@ -124,13 +137,27 @@ async function getAllSavedSessions() {
 }
 
 async function deleteSession(sessionId) {
+  await initPromise;
   try {
     await pool.query('DELETE FROM whatsapp_sessions WHERE session_id = $1', [sessionId]);
     await pool.query('DELETE FROM whatsapp_settings WHERE session_id = $1', [sessionId]);
+    await pool.query('DELETE FROM whatsapp_control_tokens WHERE session_id = $1', [sessionId]);
   } catch (e) {}
 }
 
+async function saveControlToken(sessionId, tokenHash) {
+  await initPromise;
+  await pool.query('INSERT INTO whatsapp_control_tokens (session_id, token_hash) VALUES ($1, $2) ON CONFLICT (session_id) DO UPDATE SET token_hash = EXCLUDED.token_hash, created_at = NOW()', [sessionId, tokenHash]);
+}
+
+async function getControlToken(sessionId) {
+  await initPromise;
+  const res = await pool.query('SELECT token_hash FROM whatsapp_control_tokens WHERE session_id = $1', [sessionId]);
+  return res.rows[0]?.token_hash || null;
+}
+
 async function getSessionSettings(sessionId) {
+  await initPromise;
   try {
     const res = await pool.query('SELECT settings FROM whatsapp_settings WHERE session_id = $1', [sessionId]);
     if (res.rows.length > 0) return res.rows[0].settings;
@@ -139,6 +166,7 @@ async function getSessionSettings(sessionId) {
 }
 
 async function saveSessionSettings(sessionId, settings) {
+  await initPromise;
   try {
     await pool.query(
       `INSERT INTO whatsapp_settings (session_id, settings) VALUES ($1, $2)
@@ -168,5 +196,7 @@ module.exports = {
   deleteSession,
   getSessionSettings,
   saveSessionSettings,
+  saveControlToken,
+  getControlToken,
   cleanupOldSignalKeys: async () => {}
 };
