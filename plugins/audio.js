@@ -3,7 +3,7 @@ const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const cleanup = (f) => setTimeout(() => { try { fs.unlinkSync(f); } catch {} }, 300000);
+const cleanup = f => { try { if (f) fs.unlinkSync(f); } catch {} };
 
 async function downloadAudio(sock, quotedMsg) {
   const msgType = Object.keys(quotedMsg.message)[0];
@@ -14,9 +14,9 @@ async function downloadAudio(sock, quotedMsg) {
 }
 
 async function applyEffect(inputBuffer, effect) {
-  const inp = path.join(os.tmpdir(), `in_${Date.now()}.mp3`);
-  const out = path.join(os.tmpdir(), `out_${Date.now()}.mp3`);
-  fs.writeFileSync(inp, inputBuffer);
+  const id = `${Date.now()}_${require('crypto').randomBytes(6).toString('hex')}`;
+  const inp = path.join(os.tmpdir(), `shadow_in_${id}.mp3`);
+  const out = path.join(os.tmpdir(), `shadow_out_${id}.mp3`);
 
   const filters = {
     deep: 'asetrate=44100*0.9,atempo=1.1',
@@ -37,13 +37,20 @@ async function applyEffect(inputBuffer, effect) {
     tupai: 'volume=5'
   };
 
-  const filter = filters[effect] || 'volume=1';
-  return new Promise((resolve, reject) => {
-    ffmpeg(inp).audioFilter(filter).output(out)
-      .on('end', () => resolve(out))
-      .on('error', reject)
-      .run();
-  });
+  try {
+    fs.writeFileSync(inp, inputBuffer, { flag: 'wx' });
+    await new Promise((resolve, reject) => {
+      ffmpeg(inp).audioFilter(filters[effect] || 'volume=1').output(out)
+        .on('end', resolve)
+        .on('error', reject)
+        .run();
+    });
+    return { outPath: out, inputPath: inp };
+  } catch (error) {
+    cleanup(inp);
+    cleanup(out);
+    throw error;
+  }
 }
 
 const effects = ['deep','bass','robot','earrape','chipmunk','nightcore','reverse','slow','fast','baby','demon','smooth','fat','blown','tupai','radio'];
@@ -56,11 +63,16 @@ module.exports = effects.map(effect => ({
     const msgType = Object.keys(m.quoted.message)[0];
     if (msgType !== 'audioMessage' && msgType !== 'voiceMessage') return reply("❌ Reply to an audio/voice note!");
     reply(`🎛️ Applying ${effect} effect...`);
+    let files;
     try {
       const buf = await downloadAudio(s, m.quoted);
-      const outPath = await applyEffect(buf, effect);
-      await s.sendMessage(m.chat, { audio: fs.readFileSync(outPath), mimetype: 'audio/mpeg', ptt: true }, { quoted: m });
-      cleanup(outPath);
-    } catch (e) { reply("❌ Failed: " + e.message); }
+      files = await applyEffect(buf, effect);
+      await s.sendMessage(m.chat, { audio: fs.readFileSync(files.outPath), mimetype: 'audio/mpeg', ptt: true }, { quoted: m });
+    } catch (e) {
+      reply("❌ Failed: " + e.message);
+    } finally {
+      cleanup(files?.inputPath);
+      cleanup(files?.outPath);
+    }
   }
 }));
