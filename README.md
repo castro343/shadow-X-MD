@@ -12,10 +12,10 @@
 
   <p><i>"Not just a WhatsApp assistant — it's a digital beast with attitude, automation, and style."</i></p>
 
-  <img src="https://komarev.com/ghpvc/?username=Alexio11-09&label=Visitors&color=33ff00&style=for-the-badge" alt="Visitors" />
+  <img src="https://komarev.com/ghpvc/?username=castro343&label=Visitors&color=33ff00&style=for-the-badge" alt="Visitors" />
 
   <p>
-    <a href="https://github.com/Alexio11-09/shadow-X-MD/fork">
+    <a href="https://github.com/castro343/shadow-X-MD/fork">
       <img src="https://img.shields.io/badge/🍴_FORK_REPO-SHADOW_XMD-0f172a?style=for-the-badge&logo=github&logoColor=white" alt="Fork Repo"/>
     </a>
     <a href="https://whatsapp.com/channel/0029Vb9e130F6sn68hFZQN3x">
@@ -70,10 +70,10 @@
 
 | Platform | One-Click Deploy | Uptime |
 |----------|------------------|--------|
-| **Bot-Hosting.net** | [![Deploy](https://img.shields.io/badge/🚀_Deploy_Now-6C63FF?style=for-the-badge)](https://bot-hosting.net/?aff=alphaXMD) | 24/7 Free |
-| **Railway** | [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=shadow-X-MD) | 24/7 Forever |
-| **Koyeb** | [![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=git&repository=github.com/Alexio11-09/shadow-X-MD) | 24/7 Free |
-| **Render** | [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Alexio11-09/shadow-X-MD) | 24/7 Free |
+| **Bot-Hosting.net** | [![Deploy](https://img.shields.io/badge/🚀_Deploy_Now-6C63FF?style=for-the-badge)](https://bot-hosting.net/) | 24/7 Free |
+| **Railway** | [![Deploy on Railway](https://railway.app/button.svg)](https://github.com/castro343/shadow-X-MD) | 24/7 Forever |
+| **Koyeb** | [![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=git&repository=github.com/castro343/shadow-X-MD) | 24/7 Free |
+| **Render** | [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/castro343/shadow-X-MD) | 24/7 Free |
 
 ---
 
@@ -83,7 +83,7 @@
 > **Copy the whole command, paste it in Termux, and press Enter.**
 
 ```bash
-pkg update -y && pkg upgrade -y && pkg install nodejs git ffmpeg -y && cd ~ && rm -rf shadow-X-MD && git clone https://github.com/Alexio11-09/shadow-X-MD && cd shadow-X-MD && sed -i '/jimp/d; /node-webpmux/d; /wa-sticker-formatter/d' package.json && npm install --legacy-peer-deps && node index.js
+pkg update -y && pkg upgrade -y && pkg install nodejs git ffmpeg -y && cd ~ && rm -rf shadow-X-MD && git clone https://github.com/castro343/shadow-X-MD && cd shadow-X-MD && sed -i '/jimp/d; /node-webpmux/d; /wa-sticker-formatter/d' package.json && npm install --legacy-peer-deps && node index.js
 ```
 
 After the install finishes, the bot will ask for your WhatsApp number.
@@ -127,10 +127,10 @@ Store server logins and send them to users with a single command.
   <a href="https://whatsapp.com/channel/0029Vb9e130F6sn68hFZQN3x">
     <img src="https://img.shields.io/badge/📢_SHADOW_UPDATES-Join_Channel-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Channel"/>
   </a>
-  <a href="https://chat.whatsapp.com/IWvvBvg8eRXC7F6Ni8Yq2S?mode=gi_t">
+  <a href="https://whatsapp.com/channel/0029Vb9e130F6sn68hFZQN3x">
     <img src="https://img.shields.io/badge/💬_CHAT_GROUP-Help_&_Fun-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Group"/>
   </a>
-  <a href="https://github.com/Alexio11-09/shadow-X-MD/issues">
+  <a href="https://github.com/castro343/shadow-X-MD/issues">
     <img src="https://img.shields.io/badge/🐛_REPORT_BUG-Open_Issue-EF4444?style=for-the-badge&logo=github&logoColor=white" alt="Report Bug"/>
   </a>
 </div>
@@ -148,7 +148,7 @@ Let's build the ultimate bot together 🤝
 
 <div align="center">
 
-  <img src="https://github-readme-streak-stats.herokuapp.com/?user=Alexio11-09&theme=radical&border_radius=10&hide_border=true" alt="GitHub Streak" />
+  <img src="https://github-readme-streak-stats.herokuapp.com/?user=castro343&theme=radical&border_radius=10&hide_border=true" alt="GitHub Streak" />
 
 </div>
 
