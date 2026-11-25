@@ -6,44 +6,61 @@ if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required for Pos
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
-  max: 15, // Good balance for free tier
+  max: 5,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 20000,
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
+});
+
+pool.on('error', err => {
+  console.error('[DATABASE] Idle PostgreSQL client error:', err.message);
 });
 
 async function initTables() {
-  const client = await pool.connect();
-  try {
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS whatsapp_sessions (
-        session_id VARCHAR(255) NOT NULL,
-        key_id VARCHAR(255) NOT NULL,
-        key_data TEXT NOT NULL,
-        PRIMARY KEY (session_id, key_id)
-      );
-      CREATE TABLE IF NOT EXISTS whatsapp_settings (
-        session_id VARCHAR(255) PRIMARY KEY,
-        settings JSONB NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS whatsapp_tenant_data (
-        session_id VARCHAR(255) NOT NULL,
-        data_key VARCHAR(255) NOT NULL,
-        data_value JSONB NOT NULL,
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        PRIMARY KEY (session_id, data_key)
-      );
-            CREATE TABLE IF NOT EXISTS whatsapp_control_tokens (
-        session_id VARCHAR(255) PRIMARY KEY,
-        token_hash VARCHAR(128) NOT NULL,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-    `);
-  } finally {
-    client.release();
+  let lastError;
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    let client;
+    try {
+      client = await pool.connect();
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS whatsapp_sessions (
+          session_id VARCHAR(255) NOT NULL,
+          key_id VARCHAR(255) NOT NULL,
+          key_data TEXT NOT NULL,
+          PRIMARY KEY (session_id, key_id)
+        );
+        CREATE TABLE IF NOT EXISTS whatsapp_settings (
+          session_id VARCHAR(255) PRIMARY KEY,
+          settings JSONB NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS whatsapp_tenant_data (
+          session_id VARCHAR(255) NOT NULL,
+          data_key VARCHAR(255) NOT NULL,
+          data_value JSONB NOT NULL,
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          PRIMARY KEY (session_id, data_key)
+        );
+        CREATE TABLE IF NOT EXISTS whatsapp_control_tokens (
+          session_id VARCHAR(255) PRIMARY KEY,
+          token_hash VARCHAR(128) NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+      `);
+      console.log('[DATABASE] PostgreSQL tables ready.');
+      return;
+    } catch (err) {
+      lastError = err;
+      console.error(`[DATABASE] Initialization attempt ${attempt}/4 failed:`, err.message);
+      if (attempt < 4) await new Promise(resolve => setTimeout(resolve, attempt * 1500));
+    } finally {
+      if (client) client.release();
+    }
   }
+  throw lastError;
 }
 const initPromise = initTables();
-initPromise.catch(err => console.error('Database Init Error:', err.message));
+initPromise.catch(err => console.error('Database Init Error after retries:', err.message));
 
 async function usePostgresAuthState(sessionId) {
   const writeData = async (data, id) => {
