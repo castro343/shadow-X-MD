@@ -1,4 +1,4 @@
-// © 2026 Alpha - MESSAGE HANDLER (STABLE FULL FEATURES)
+// SHADOW X MD - MESSAGE HANDLER (STABLE FULL FEATURES)
 const fs = require("fs");
 const path = require("path");
 const config = require("./settings/config");
