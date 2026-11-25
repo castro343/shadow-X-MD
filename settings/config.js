@@ -26,7 +26,7 @@ const config = {
     },
     newsletter: {
         name: 'SHADOW_XMD_UPDATES',
-        id: process.env.NEWSLETTER_ID || '120363406868236363'
+        id: process.env.NEWSLETTER_ID || '120363431455927139'
     }
 };
 
